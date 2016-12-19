@@ -37,11 +37,20 @@ int main(void)
 	}
 
 	/*
-	 * Alg2: Exactly n bombs (in this case 10)
+	 * Alg2: Creates exactly n bombs (in this case 10)
 	 * Distributes by choosing grid location
+	 *
+	 * This actually results in 11 bombs. Not sure why.
 	 */
-	for (i = 0; i != 10; i++) 
-		grid[randombytes_uniform(GRIDSIZE)][randombytes_uniform(GRIDSIZE)] = 1;
+	for (i = 0; i != 10; i++) {
+		xy.y = randombytes_uniform(GRIDSIZE);
+		xy.x = randombytes_uniform(GRIDSIZE);
+		/* If a bomb is placed on a square that already contains a bomb, don't change i */
+		if (grid[xy.y][xy.x] == 1)
+			i--;
+		else
+			grid[xy.y][xy.x] = 1;
+	}
 
 	for (i = 0; i != GRIDSIZE; i++)
 		for (n = 0; n != GRIDSIZE; n++)

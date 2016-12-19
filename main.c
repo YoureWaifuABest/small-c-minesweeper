@@ -1,3 +1,9 @@
+/*
+ * Licensed under the MIT license.
+ * Read LICENSE for more information.
+ *
+ * github: https://github.com/YoureWaifuABest/small-c-minesweeper
+ */
 #include <stdio.h>
 #include <sodium.h>
 #include <string.h>

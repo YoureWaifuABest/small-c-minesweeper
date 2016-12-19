@@ -20,14 +20,17 @@ int nearby_bombs(char (*grid)[GRIDSIZE], struct point xy);
  */
 int flood(char (*grid)[GRIDSIZE], struct point xy)
 {
+	/* If we've stepped onto a bomb or an already-checked area */
 	if (grid[xy.y][xy.x] != 0)
 		return 0;
 
+	/* If there are bombs nearby */
 	if (nearby_bombs(grid, xy) != 0) {
 		grid[xy.y][xy.x] = nearby_bombs(grid, xy) + 3;
 		return 0;
 	}
 
+	/* 3 is the arbitrary value for "already checked blank spot with no nearby bombs" */
 	grid[xy.y][xy.x] = 3;
 
 	if (nearby_bombs(grid, xy) == 0) {
@@ -65,20 +68,28 @@ int nearby_bombs(char (*grid)[GRIDSIZE], struct point xy)
 	int nearby;
 
 	nearby = 0;
+	/* Right */
 	if ((xy.x + 1) < GRIDSIZE && grid[xy.y][xy.x + 1] == 1)
 		++nearby;
+	/* Down */
 	if ((xy.y + 1) < GRIDSIZE && grid[xy.y + 1][xy.x] == 1)
 		++nearby;
+	/* Downright */
 	if ((xy.x + 1) < GRIDSIZE && (xy.y + 1) < GRIDSIZE  && grid[xy.y + 1][xy.x + 1] == 1)
 		++nearby;
+	/* Left */
 	if ((xy.x - 1) >= 0 && grid[xy.y][xy.x - 1] == 1)
 		++nearby;
+	/* Up */
 	if ((xy.y - 1) >= 0 && grid[xy.y - 1][xy.x] == 1)
 		++nearby;
+	/* Left-up */
 	if ((xy.x - 1) >= 0 && (xy.y - 1) >= 0 && grid[xy.y - 1][xy.x - 1] == 1)
 		++nearby;
+	/* Right-up */
 	if ((xy.x + 1) < GRIDSIZE && (xy.y - 1) >= 0 && grid[xy.y - 1][xy.x + 1] == 1)
 		++nearby;
+	/* Left-down */
 	if ((xy.x - 1) >= 0 && (xy.y + 1) < GRIDSIZE && grid[xy.y + 1][xy.x - 1] == 1)
 		++nearby;
 

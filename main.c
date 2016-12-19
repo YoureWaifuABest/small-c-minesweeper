@@ -13,6 +13,8 @@
 /* Not sure if global variable for debug mode is the right call */
 int debug = 0;
 
+#define MINES 50
+
 struct point select_square(void);
 void shift_left(char *);
 int render_grid(char (*grid)[GRIDSIZE]);
@@ -24,7 +26,7 @@ int main(void)
 	 * 2d array
 	 */
 	char grid[GRIDSIZE][GRIDSIZE];
-	int i, n;
+	int i, n, count;
 	struct point xy;
 
 	/* 
@@ -42,7 +44,7 @@ int main(void)
 	 *
 	 * This actually results in 11 bombs. Not sure why.
 	 */
-	for (i = 0; i != 10; i++) {
+	for (i = 0; i != MINES; i++) {
 		xy.y = randombytes_uniform(GRIDSIZE);
 		xy.x = randombytes_uniform(GRIDSIZE);
 		/* If a bomb is placed on a square that already contains a bomb, don't change i */
@@ -116,6 +118,7 @@ int main(void)
 					break;
 				case 1:
 					grid[xy.y][xy.x] = 2;
+					/* It's better to have it just render bombs as b rather than this */
 					for (i = 0; i != GRIDSIZE; ++i)
 						for (n = 0; n != GRIDSIZE; ++n)
 							if (grid[i][n] == 1)
@@ -132,6 +135,16 @@ int main(void)
 					printf("Already selected!\n");
 					break;
 			}
+		}
+		/* This can also be improved, like the lose condition */
+		count = n = 0;
+		for (i = 0; i != GRIDSIZE && grid[i][n] != 0; ++i) 
+			for (n = 0; n != GRIDSIZE && grid[i][n] != 0; ++n) 
+				++count;
+		if (count == GRIDSIZE*GRIDSIZE) {
+			render_grid(grid);
+			printf("You won!\n");
+			exit(EXIT_SUCCESS);
 		}
 	}
 	return 0;

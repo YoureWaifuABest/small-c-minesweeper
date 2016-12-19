@@ -8,6 +8,9 @@ libsodium
 ## Installing
 ```
 git clone [this repo]
-configure the make file to use your favorite compiler (if necessary)
+configure the makefile (if necessary)
 make
 ```
+
+Has not been tested on any platform other than Gentoo GNU/Linux.
+Results may vary.

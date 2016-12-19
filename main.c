@@ -116,6 +116,10 @@ int main(void)
 					break;
 				case 1:
 					grid[xy.y][xy.x] = 2;
+					for (i = 0; i != GRIDSIZE; ++i)
+						for (n = 0; n != GRIDSIZE; ++n)
+							if (grid[i][n] == 1)
+								grid[i][n] = 2;
 					render_grid(grid);
 					printf("You lose!\n");
 					exit(EXIT_SUCCESS);

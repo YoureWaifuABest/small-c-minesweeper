@@ -10,10 +10,7 @@
 #include <stdlib.h>
 #include "main.h"
 
-/* Not sure if global variable for debug mode is the right call */
-int debug = 0;
-
-#define MINES 50
+#define MINES 10
 
 struct point select_square(void);
 void shift_left(char *);
@@ -77,39 +74,6 @@ int main(void)
 		/* Output initial grid */
 		render_grid(grid);
 		xy = select_square();
-
-		/* 
-		 * Debug mode is synonymous with cheater mode
-		 * Don't use it if you want to have "fun"
-		 */
-		if (debug) {
-			/* Print horizontal legend */
-			for (i = 0; i != GRIDSIZE; ++i)
-				printf("%i ", i+1);
-			printf("\n");
-
-			/* Print cheater grid */
-			for (i = 0; i != GRIDSIZE; ++i) {
-				for (n = 0; n != GRIDSIZE; ++n)
-					printf("%d ", grid[i][n]);
-				/* 
-				 * Print vertical legend 
-				 * There is probably a better way of 
-				 * incrementing these characters
-				 */
-				printf("%c", 'A' + i);
-				printf("\n");
-			}
-			printf("\n");
-			/*
-			 * Print selected position on grid.
-			 * This will default to (-1, -1) when debug mode is first initialized
-			 * Don't worry about it.
-			 */
-			printf("y: %d x: %d\n", xy.y, xy.x);
-			/* Value of this position on grid */
-			printf("Grid Value: %d\n", grid[xy.y][xy.x]);
-		}
 
 		if (xy.x != -1 && xy.y != -1) {
 			switch (grid[xy.y][xy.x]) {
@@ -217,19 +181,6 @@ struct point select_square(void)
 		string[i++] = c;
 
 	string[i] = '\0';
-
-	/* 
-	 * db = debug
-	 * returns -1 for xy to signify that the values are unusual,
-	 * and I have to return a value of type struct point.
-	 */
-	if (string[0] == 'd' && string[1] == 'b') {
-		printf("Debug Mode Activated!\n");
-		debug = 1;
-		xy.y = -1;
-		xy.x = -1;
-		return xy;
-	}
 
 	/* 
 	 * 17 is the difference between A and 0

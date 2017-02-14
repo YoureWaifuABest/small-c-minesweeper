@@ -36,40 +36,26 @@ int main(void)
 	}
 
 	/*
-	 * Alg2: Creates exactly n bombs (in this case 10)
+	 * Alg2: Creates exactly n bombs
 	 * Distributes by choosing grid location
-	 *
-	 * This actually results in 11 bombs. Not sure why.
 	 */
 	for (i = 0; i != MINES; i++) {
 		xy.y = randombytes_uniform(GRIDSIZE);
 		xy.x = randombytes_uniform(GRIDSIZE);
 		/* If a bomb is placed on a square that already contains a bomb, don't change i */
-		if (grid[xy.y][xy.x] == 1)
+		if (grid[xy.y][xy.x] != 0)
 			i--;
 		else
 			grid[xy.y][xy.x] = 1;
 	}
 
+	/* Initialize all non-bombs as 0 */
 	for (i = 0; i != GRIDSIZE; i++)
 		for (n = 0; n != GRIDSIZE; n++)
 			if (grid[i][n] != 1)
 				grid[i][n] = 0;
 
-	/* 
-	 * Alg1: 50% for each square
-	 * This is not used for obvious reasons.
-	 *
-	for (i = 0; i != GRIDSIZE; i++)
-		for (n = 0; n != GRIDSIZE; n++) {
-			grid[i][n] = randombytes_uniform(2);
-		}
-	 */
-
-	/*
-	 * Infinite loop to run the game
-	 * Currently only a failure state, no success
-	 */
+	/* Main loop to run the game */
 	while (1) {
 		/* Output initial grid */
 		render_grid(grid);

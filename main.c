@@ -7,14 +7,14 @@
 #include <stdio.h>
 #include <sodium.h>
 #include <string.h>
-#include <stdlib.h>
+#include <ncurses.h>
 #include "main.h"
 
 #define MINES 10
 
-struct point select_square(void);
+int select_square(struct point *);
 void shift_left(char *);
-int render_grid(char (*grid)[GRIDSIZE]);
+int render_grid(char (*grid)[GRIDSIZE], struct point);
 
 int main(void)
 {
@@ -23,7 +23,7 @@ int main(void)
 	 * 2d array
 	 */
 	char grid[GRIDSIZE][GRIDSIZE];
-	int i, n, count;
+	int i, n, count, sp;
 	struct point xy;
 
 	/* 
@@ -55,36 +55,62 @@ int main(void)
 			if (grid[i][n] != 1)
 				grid[i][n] = 0;
 
+	/* Start ncurses */
+	initscr();
+
+	/* Line buffering disabled */
+	cbreak();
+
+	/* Allows F1 key to be utilized (among other things) */
+	keypad(stdscr, TRUE);
+
+	xy.x = 0;
+	xy.y = 0;
+
+	move(GRIDSIZE+2, 0);
+	printw("q to quit,\n"
+	       "arrow keys to move to an area,\n"
+	       "spacebar to select it");
+
 	/* Main loop to run the game */
 	while (1) {
 		/* Output initial grid */
-		render_grid(grid);
-		xy = select_square();
+		render_grid(grid, xy);
+		sp = select_square(&xy);
 
-		if (xy.x != -1 && xy.y != -1) {
-			switch (grid[xy.y][xy.x]) {
-				case 0:
-					flood(grid, xy);
-					break;
-				case 1:
-					grid[xy.y][xy.x] = 2;
-					/* It's better to have it just render bombs as b rather than this */
-					for (i = 0; i != GRIDSIZE; ++i)
-						for (n = 0; n != GRIDSIZE; ++n)
-							if (grid[i][n] == 1)
-								grid[i][n] = 2;
-					render_grid(grid);
-					printf("You lose!\n");
-					exit(EXIT_SUCCESS);
-				/* 
-				 * This results in debug mode outputting
-				 * "Already Selected"
-				 * Not a big deal, though, so I have no desire to fix it
-				 */
-				default:
-					printf("Already selected!\n");
-					break;
+		if (sp == 1) {
+			if (xy.x != -1 && xy.y != -1) {
+				switch (grid[xy.y][xy.x]) {
+					case 0:
+						flood(grid, xy);
+						break;
+					case 1:
+						grid[xy.y][xy.x] = 2;
+						/* It's better to have it just render bombs as b rather than this */
+						for (i = 0; i != GRIDSIZE; ++i)
+							for (n = 0; n != GRIDSIZE; ++n)
+								if (grid[i][n] == 1)
+									grid[i][n] = 2;
+						render_grid(grid, xy);
+						move(GRIDSIZE+1,0);
+						printw("You lose!\n");
+						getch();
+						endwin();
+						return 0;
+					/* 
+					 * This results in debug mode outputting
+					 * "Already Selected"
+					 * Not a big deal, though, so I have no desire to fix it
+					 */
+					default:
+						move(GRIDSIZE+1,0);
+						printw("Already selected!\n");
+						break;
+				}
 			}
+		} else if (sp == -1) {
+			endwin();
+			return 0;
 		}
 		/* This can also be improved, like the lose condition */
 		count = n = 0;
@@ -92,9 +118,12 @@ int main(void)
 			for (n = 0; n != GRIDSIZE && grid[i][n] != 0; ++n) 
 				++count;
 		if (count == GRIDSIZE*GRIDSIZE) {
-			render_grid(grid);
-			printf("You won!\n");
-			exit(EXIT_SUCCESS);
+			render_grid(grid, xy);
+			move(GRIDSIZE+1,0);
+			printw("You won!\n");
+			getch();
+			endwin();
+			return 0;
 		}
 	}
 	return 0;
@@ -105,14 +134,16 @@ int main(void)
  * There are a few different ways to do this, 
  * this requires the most if statements.
  */
-int render_grid(char (*grid)[GRIDSIZE])
+int render_grid(char (*grid)[GRIDSIZE], struct point xy)
 {
 	int i, n;
 
+	move(0,0);
+
 	/* Print horizontal legend */
 	for (i = 0; i != GRIDSIZE; ++i)
-		printf("%i ", i+1);
-	printf("\n");
+		printw("%i ", i+1);
+	printw("\n");
 
 	/*
 	 * Iterate through each grid element,
@@ -122,71 +153,63 @@ int render_grid(char (*grid)[GRIDSIZE])
 		for (n = 0; n != GRIDSIZE; n++) {
 			/* Don't reveal unrevealed squares */
 			if (grid[i][n] == 0 || grid[i][n] == 1)
-				printf("x ");
+				printw("x ");
 			else if (grid[i][n] == 2)
-				printf("b ");
+				printw("b ");
 			else if (grid[i][n] == 3)
-				printf("0 ");
+				printw("0 ");
 			else if (grid[i][n] == 4)
-				printf("1 ");
+				printw("1 ");
 			else if (grid[i][n] == 5)
-				printf("2 ");
+				printw("2 ");
 			else if (grid[i][n] == 6)
-				printf("3 ");
+				printw("3 ");
 			else if (grid[i][n] == 7)
-				printf("4 ");
+				printw("4 ");
 			else if (grid[i][n] == 8)
-				printf("5 ");
+				printw("5 ");
 			else if (grid[i][n] == 9)
-				printf("6 ");
+				printw("6 ");
 		}
 		/* Vertical Legend */
-		printf("%c", 'A' + i);
-		printf("\n");
+		printw("%c", 'A' + i);
+		printw("\n");
 	}
+
+	move(xy.y+1,xy.x*2);
+
+	refresh();
 
 	return 0;
 }
 
 /* Selects a square and returns it's coordinates */
-struct point select_square(void)
+int select_square(struct point *xy)
 {
-	int i;
-	char c;
-	/* 
-	 * This length is entirely arbitrary.
-	 * Doesn't handle buffer-overflows or anything of the sort.
-	 * Perhaps it's not the smartest thing to expect sane user input,
-	 * but the alternative is a small amount of work on my part.
-	 */
-	char string[10];
-	struct point xy;
+	int ch;
 
-	i = 0;
-	while ((c = getchar()) != EOF && c != '\n')
-		string[i++] = c;
-
-	string[i] = '\0';
-
-	/* 
-	 * 17 is the difference between A and 0
-	 * The downside to this is that the letters need to be in caps.
-	 * Haven't bothered making it case-insensitive
-	 */
-	string[0] = string[0] - 17;
-	/* Converts from the character value of 0 to the integer value of 0 */
-	xy.y = string[0] - '0';
-
-	/* Removes leading 0 */
-	shift_left(string);
-
-	/* Convert string to integer */
-	xy.x = atoi(string);
-	/* 
-	 * Values on the grid are 0-indexed, whereas user input is 1-indexed.
-	 * This converts the input to be 1-indexed, so 10=9, etc.
-	 */
-	xy.x -= 1;
-
-	return xy;
+	ch = getch();
+	switch(ch) {
+		case KEY_LEFT:
+			if ((xy->x) > 0)
+				(xy->x)--;
+			break;
+		case KEY_RIGHT:
+			if ((xy->x) + 1 < GRIDSIZE)
+				(xy->x)++;
+			break;
+		case KEY_UP:
+			if ((xy->y) > 0)
+				(xy->y)--;
+			break;
+		case KEY_DOWN:
+			if ((xy->y) + 1 < GRIDSIZE)
+				(xy->y)++;
+			break;
+		case ' ':
+			return 1;
+		case 'q':
+			return -1;
+		}
+	return 0;
 }

@@ -3,11 +3,6 @@
 #include "bomb_detection.c"
 #endif
 
-#ifndef FLG_STRINGMANIP
-#define FLG_STRINGMANIP
-#include "string_manip.c"
-#endif
-
 #ifndef FLG_POINT
 #define FLG_POINT
 struct point {

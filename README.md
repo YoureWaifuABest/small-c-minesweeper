@@ -4,6 +4,7 @@ Minimal C Minesweeper
 
 ## Dependencies
 libsodium
+
 ncurses
 
 ## Installing

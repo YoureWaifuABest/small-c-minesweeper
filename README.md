@@ -1,6 +1,6 @@
-# ncurses-minesweeper
+# small-c-minesweeper
 
-Minimal C Minesweeper using the ncurses library
+Minimal C Minesweeper
 
 ## Dependencies
 libsodium

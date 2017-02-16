@@ -69,7 +69,7 @@ int main(void)
 	xy.y = 0;
 
 	game = newwin(GRIDSIZE, (GRIDSIZE*2)+2, 1, 0);
-	help = newwin(3, 31, GRIDSIZE+2, 0);
+	help = newwin(3, 31, GRIDSIZE+1, 0);
 
 	if (has_colors()) {
 		use_default_colors();
@@ -79,6 +79,7 @@ int main(void)
 		init_pair(3, COLOR_BLUE, -1);
 	}
 
+	/* Print help values, colors and stuff */
 	wmove(help,0,0);
 	wattron (help, COLOR_PAIR(1));
 	wprintw(help, "q ");
@@ -122,7 +123,7 @@ int main(void)
 								if (grid[i][n] == 1)
 									grid[i][n] = 2;
 						render_grid(grid, xy, game);
-						move(GRIDSIZE+1,0);
+						move(GRIDSIZE+4,0);
 						attrset(COLOR_PAIR(1));
 						printw("You lose!\n");
 						getch();
@@ -134,9 +135,10 @@ int main(void)
 					 * Not a big deal, though, so I have no desire to fix it
 					 */
 					default:
-						move(GRIDSIZE+1,0);
+						move(GRIDSIZE+4,0);
 						attrset(COLOR_PAIR(1));
 						printw("Already selected!\n");
+						move(xy.y+1, xy.x*2);
 						break;
 				}
 			}
@@ -151,7 +153,7 @@ int main(void)
 				++count;
 		if (count == GRIDSIZE*GRIDSIZE) {
 			render_grid(grid, xy, game);
-			move(GRIDSIZE+1,0);
+			move(GRIDSIZE+4,0);
 			attrset(COLOR_PAIR(2));
 			printw("You won!\n");
 			getch();

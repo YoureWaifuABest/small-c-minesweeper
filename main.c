@@ -10,7 +10,7 @@
 #include <ncurses.h>
 #include "main.h"
 
-#define MINES 10
+#define MINES 1
 
 int select_square(struct point *);
 void shift_left(char *);
@@ -26,6 +26,7 @@ int main(void)
 	int i, n, count, sp;
 	struct point xy;
 	WINDOW *game;
+	WINDOW *help;
 
 	/* 
 	 * Initialize libsodium
@@ -68,18 +69,37 @@ int main(void)
 	xy.y = 0;
 
 	game = newwin(GRIDSIZE, (GRIDSIZE*2)+2, 1, 0);
+	help = newwin(3, 31, GRIDSIZE+2, 0);
 
-	move(GRIDSIZE+2, 0);
-	printw("q to quit,\n"
-	       "arrow keys to move to an area,\n"
-	       "spacebar to select it");
+	if (has_colors()) {
+		use_default_colors();
+		start_color();
+		init_pair(1, COLOR_RED, -1);
+		init_pair(2, COLOR_GREEN, -1);
+		init_pair(3, COLOR_BLUE, -1);
+	}
+
+	wmove(help,0,0);
+	wattron (help, COLOR_PAIR(1));
+	wprintw(help, "q ");
+	wattroff(help, COLOR_PAIR(1));
+	wprintw(help,"to quit,\n");
+	wattron (help, COLOR_PAIR(3));
+	wprintw(help, "arrow keys ");
+	wattroff(help, COLOR_PAIR(3));
+	wprintw(help, "to move to an area,\n");
+	wattron (help, COLOR_PAIR(2));
+	wprintw(help, "spacebar ");
+	wattroff(help, COLOR_PAIR(2));
+	wprintw(help, "to select the area");
+	refresh();
+	wrefresh(help);
 
 	/* Print horizontal legend */
 	move(0,0);
 	for (i = 0; i != GRIDSIZE; ++i)
 		printw("%i ", i+1);
 	printw("\n");
-
 	refresh();
 
 	/* Main loop to run the game */
@@ -103,6 +123,7 @@ int main(void)
 									grid[i][n] = 2;
 						render_grid(grid, xy, game);
 						move(GRIDSIZE+1,0);
+						attrset(COLOR_PAIR(1));
 						printw("You lose!\n");
 						getch();
 						endwin();
@@ -114,6 +135,7 @@ int main(void)
 					 */
 					default:
 						move(GRIDSIZE+1,0);
+						attrset(COLOR_PAIR(1));
 						printw("Already selected!\n");
 						break;
 				}
@@ -130,6 +152,7 @@ int main(void)
 		if (count == GRIDSIZE*GRIDSIZE) {
 			render_grid(grid, xy, game);
 			move(GRIDSIZE+1,0);
+			attrset(COLOR_PAIR(2));
 			printw("You won!\n");
 			getch();
 			endwin();

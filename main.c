@@ -14,7 +14,7 @@
 
 int select_square(struct point *);
 void shift_left(char *);
-int render_grid(char (*grid)[GRIDSIZE], struct point);
+int render_grid(char (*grid)[GRIDSIZE], struct point, WINDOW *);
 
 int main(void)
 {
@@ -25,18 +25,18 @@ int main(void)
 	char grid[GRIDSIZE][GRIDSIZE];
 	int i, n, count, sp;
 	struct point xy;
+	WINDOW *game;
 
 	/* 
 	 * Initialize libsodium
 	 * If libsodium did not correctly initialize,
 	 * abort program.
 	 */
-	if (sodium_init() == -1) {
-		exit(EXIT_FAILURE);
-	}
+	if (sodium_init() == -1)
+		return -1;
 
 	/*
-	 * Alg2: Creates exactly n bombs
+	 * Creates exactly n bombs
 	 * Distributes by choosing grid location
 	 */
 	for (i = 0; i != MINES; i++) {
@@ -61,21 +61,31 @@ int main(void)
 	/* Line buffering disabled */
 	cbreak();
 
-	/* Allows F1 key to be utilized (among other things) */
+	/* Necessary for arrow keys */
 	keypad(stdscr, TRUE);
 
 	xy.x = 0;
 	xy.y = 0;
+
+	game = newwin(GRIDSIZE, (GRIDSIZE*2)+2, 1, 0);
 
 	move(GRIDSIZE+2, 0);
 	printw("q to quit,\n"
 	       "arrow keys to move to an area,\n"
 	       "spacebar to select it");
 
+	/* Print horizontal legend */
+	move(0,0);
+	for (i = 0; i != GRIDSIZE; ++i)
+		printw("%i ", i+1);
+	printw("\n");
+
+	refresh();
+
 	/* Main loop to run the game */
 	while (1) {
 		/* Output initial grid */
-		render_grid(grid, xy);
+		render_grid(grid, xy, game);
 		sp = select_square(&xy);
 
 		if (sp == 1) {
@@ -91,7 +101,7 @@ int main(void)
 							for (n = 0; n != GRIDSIZE; ++n)
 								if (grid[i][n] == 1)
 									grid[i][n] = 2;
-						render_grid(grid, xy);
+						render_grid(grid, xy, game);
 						move(GRIDSIZE+1,0);
 						printw("You lose!\n");
 						getch();
@@ -118,7 +128,7 @@ int main(void)
 			for (n = 0; n != GRIDSIZE && grid[i][n] != 0; ++n) 
 				++count;
 		if (count == GRIDSIZE*GRIDSIZE) {
-			render_grid(grid, xy);
+			render_grid(grid, xy, game);
 			move(GRIDSIZE+1,0);
 			printw("You won!\n");
 			getch();
@@ -134,16 +144,11 @@ int main(void)
  * There are a few different ways to do this, 
  * this requires the most if statements.
  */
-int render_grid(char (*grid)[GRIDSIZE], struct point xy)
+int render_grid(char (*grid)[GRIDSIZE], struct point xy, WINDOW *game)
 {
 	int i, n;
 
-	move(0,0);
-
-	/* Print horizontal legend */
-	for (i = 0; i != GRIDSIZE; ++i)
-		printw("%i ", i+1);
-	printw("\n");
+	wmove(game,0,0);
 
 	/*
 	 * Iterate through each grid element,
@@ -153,32 +158,32 @@ int render_grid(char (*grid)[GRIDSIZE], struct point xy)
 		for (n = 0; n != GRIDSIZE; n++) {
 			/* Don't reveal unrevealed squares */
 			if (grid[i][n] == 0 || grid[i][n] == 1)
-				printw("x ");
+				wprintw(game, "x ");
 			else if (grid[i][n] == 2)
-				printw("b ");
+				wprintw(game, "b ");
 			else if (grid[i][n] == 3)
-				printw("0 ");
+				wprintw(game, "0 ");
 			else if (grid[i][n] == 4)
-				printw("1 ");
+				wprintw(game, "1 ");
 			else if (grid[i][n] == 5)
-				printw("2 ");
+				wprintw(game, "2 ");
 			else if (grid[i][n] == 6)
-				printw("3 ");
+				wprintw(game, "3 ");
 			else if (grid[i][n] == 7)
-				printw("4 ");
+				wprintw(game, "4 ");
 			else if (grid[i][n] == 8)
-				printw("5 ");
+				wprintw(game, "5 ");
 			else if (grid[i][n] == 9)
-				printw("6 ");
+				wprintw(game, "6 ");
 		}
 		/* Vertical Legend */
-		printw("%c", 'A' + i);
-		printw("\n");
+		wprintw(game, "%c", 'A' + i);
+		wprintw(game, "\n");
 	}
 
-	move(xy.y+1,xy.x*2);
+	wmove(game, xy.y, xy.x*2);
 
-	refresh();
+	wrefresh(game);
 
 	return 0;
 }

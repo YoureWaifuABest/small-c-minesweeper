@@ -10,7 +10,7 @@
 #include <ncurses.h>
 #include "main.h"
 
-#define MINES 1
+#define MINES 10
 
 int select_square(struct point *);
 void shift_left(char *);
@@ -36,6 +36,11 @@ int main(void)
 	if (sodium_init() == -1)
 		return -1;
 
+	/* Initialize all non-bombs as 0 */
+	for (i = 0; i != GRIDSIZE; i++)
+		for (n = 0; n != GRIDSIZE; n++)
+			grid[i][n] = 0;
+
 	/*
 	 * Creates exactly n bombs
 	 * Distributes by choosing grid location
@@ -50,12 +55,6 @@ int main(void)
 			grid[xy.y][xy.x] = 1;
 	}
 
-	/* Initialize all non-bombs as 0 */
-	for (i = 0; i != GRIDSIZE; i++)
-		for (n = 0; n != GRIDSIZE; n++)
-			if (grid[i][n] != 1)
-				grid[i][n] = 0;
-
 	/* Start ncurses */
 	initscr();
 
@@ -69,7 +68,7 @@ int main(void)
 	xy.y = 0;
 
 	game = newwin(GRIDSIZE, (GRIDSIZE*2)+2, 1, 0);
-	help = newwin(3, 31, GRIDSIZE+1, 0);
+	help = newwin(4, 31, GRIDSIZE+1, 0);
 
 	if (has_colors()) {
 		use_default_colors();
@@ -77,6 +76,7 @@ int main(void)
 		init_pair(1, COLOR_RED, -1);
 		init_pair(2, COLOR_GREEN, -1);
 		init_pair(3, COLOR_BLUE, -1);
+		init_pair(4, COLOR_YELLOW, -1);
 	}
 
 	/* Print help values, colors and stuff */
@@ -84,15 +84,19 @@ int main(void)
 	wattron (help, COLOR_PAIR(1));
 	wprintw(help, "q ");
 	wattroff(help, COLOR_PAIR(1));
-	wprintw(help,"to quit,\n");
+	wprintw(help,"to quit\n");
 	wattron (help, COLOR_PAIR(3));
 	wprintw(help, "arrow keys ");
 	wattroff(help, COLOR_PAIR(3));
-	wprintw(help, "to move to an area,\n");
+	wprintw(help, "to move to an area\n");
 	wattron (help, COLOR_PAIR(2));
 	wprintw(help, "spacebar ");
 	wattroff(help, COLOR_PAIR(2));
-	wprintw(help, "to select the area");
+	wprintw(help, "to select the area\n");
+	wattron (help, COLOR_PAIR(4));
+	wprintw(help, "r ");
+	wattroff(help, COLOR_PAIR(4));
+	wprintw(help, "to restart game");
 	refresh();
 	wrefresh(help);
 
@@ -123,7 +127,7 @@ int main(void)
 								if (grid[i][n] == 1)
 									grid[i][n] = 2;
 						render_grid(grid, xy, game);
-						move(GRIDSIZE+4,0);
+						move(GRIDSIZE+5,0);
 						attrset(COLOR_PAIR(1));
 						printw("You lose!\n");
 						getch();
@@ -135,7 +139,7 @@ int main(void)
 					 * Not a big deal, though, so I have no desire to fix it
 					 */
 					default:
-						move(GRIDSIZE+4,0);
+						move(GRIDSIZE+5,0);
 						attrset(COLOR_PAIR(1));
 						printw("Already selected!\n");
 						move(xy.y+1, xy.x*2);
@@ -153,7 +157,7 @@ int main(void)
 				++count;
 		if (count == GRIDSIZE*GRIDSIZE) {
 			render_grid(grid, xy, game);
-			move(GRIDSIZE+4,0);
+			move(GRIDSIZE+5,0);
 			attrset(COLOR_PAIR(2));
 			printw("You won!\n");
 			getch();
@@ -184,8 +188,11 @@ int render_grid(char (*grid)[GRIDSIZE], struct point xy, WINDOW *game)
 			/* Don't reveal unrevealed squares */
 			if (grid[i][n] == 0 || grid[i][n] == 1)
 				wprintw(game, "x ");
-			else if (grid[i][n] == 2)
+			else if (grid[i][n] == 2) {
+				wattron (game, COLOR_PAIR(1));
 				wprintw(game, "b ");
+				wattroff(game, COLOR_PAIR(1));
+			}
 			else if (grid[i][n] == 3)
 				wprintw(game, "0 ");
 			else if (grid[i][n] == 4)
